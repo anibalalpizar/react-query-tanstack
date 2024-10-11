@@ -1,14 +1,20 @@
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { createPost, getPosts, getUsers } from "./utils/api";
 import type { UserResponseHttpData, PostResponseHttpData } from "./types/types";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 function App() {
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
 
-  const { mutate, isSuccess } = useMutation({
+  const queryClient = useQueryClient();
+
+  const { mutate } = useMutation({
     mutationFn: createPost,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["getPosts"] });
+      queryClient.invalidateQueries({ queryKey: ["getUsers"] });
+    },
   });
 
   const {
@@ -22,22 +28,11 @@ function App() {
 
   const {
     data: postsData,
-    error: postsError,
     isLoading: postsIsLoading,
-    refetch: refetchGetPosts,
-    isSuccess: postsIsSuccess,
-    isPending: postsIsPending,
   } = useQuery<PostResponseHttpData[]>({
     queryKey: ["getPosts"],
     queryFn: getPosts,
   });
-
-  useEffect(() => {
-    if (isSuccess && !postsIsPending) {
-      console.log("Post created successfully - refetching posts...");
-      refetchGetPosts();
-    }
-  }, [isSuccess, postsIsPending, refetchGetPosts]);
 
   if (usersError && !usersIsLoading) {
     return <div>An error ocurred while fetching the data...</div>;
