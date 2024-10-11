@@ -17,3 +17,8 @@ export const createPost = async (body: CreatePostRequestBody) => {
   });
   return res.json();
 };
+
+export const getPosts = async () => {
+  const data = await fetch(`${BASE_URL}/posts`);
+  return data.json();
+};

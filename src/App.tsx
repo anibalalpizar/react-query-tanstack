@@ -1,7 +1,7 @@
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { createPost, getUsers } from "./utils/api";
-import type { UserResponseHttpData } from "./types/types";
-import { useState } from "react";
+import { createPost, getPosts, getUsers } from "./utils/api";
+import type { UserResponseHttpData, PostResponseHttpData } from "./types/types";
+import { useEffect, useState } from "react";
 
 function App() {
   const [title, setTitle] = useState("");
@@ -11,12 +11,35 @@ function App() {
     mutationFn: createPost,
   });
 
-  const { data, error, isLoading } = useQuery<UserResponseHttpData[]>({
+  const {
+    data: usersData,
+    error: usersError,
+    isLoading: usersIsLoading,
+  } = useQuery<UserResponseHttpData[]>({
     queryKey: ["getUsers"],
     queryFn: getUsers,
   });
 
-  if (error && !isLoading) {
+  const {
+    data: postsData,
+    error: postsError,
+    isLoading: postsIsLoading,
+    refetch: refetchGetPosts,
+    isSuccess: postsIsSuccess,
+    isPending: postsIsPending,
+  } = useQuery<PostResponseHttpData[]>({
+    queryKey: ["getPosts"],
+    queryFn: getPosts,
+  });
+
+  useEffect(() => {
+    if (isSuccess && !postsIsPending) {
+      console.log("Post created successfully - refetching posts...");
+      refetchGetPosts();
+    }
+  }, [isSuccess, postsIsPending, refetchGetPosts]);
+
+  if (usersError && !usersIsLoading) {
     return <div>An error ocurred while fetching the data...</div>;
   }
 
@@ -46,13 +69,24 @@ function App() {
         <button type="submit">Submit</button>
       </form>
 
-      {!isLoading && data ? (
+      <div>
+        {!postsIsLoading &&
+          postsData &&
+          postsData.map((post) => (
+            <div key={post.id}>
+              <h1>{post.title}</h1>
+              <p>{post.body}</p>
+            </div>
+          ))}
+      </div>
+
+      {!usersIsLoading && usersData ? (
         <div>
-          {data.map((user) => (
-            <div>
-              <b>{user.name}</b>
-              <b>{user.username}</b>
-              <b>{user.email}</b>
+          {usersData.map((usersData) => (
+            <div key={usersData.id}>
+              <b>{usersData.name}</b>
+              <b>{usersData.username}</b>
+              <b>{usersData.email}</b>
             </div>
           ))}
         </div>
