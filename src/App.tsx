@@ -1,8 +1,16 @@
-import { useQuery } from "@tanstack/react-query";
-import { getUsers } from "./utils/api";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { createPost, getUsers } from "./utils/api";
 import type { UserResponseHttpData } from "./types/types";
+import { useState } from "react";
 
 function App() {
+  const [title, setTitle] = useState("");
+  const [body, setBody] = useState("");
+
+  const { mutate, isSuccess } = useMutation({
+    mutationFn: createPost,
+  });
+
   const { data, error, isLoading } = useQuery<UserResponseHttpData[]>({
     queryKey: ["getUsers"],
     queryFn: getUsers,
@@ -14,6 +22,30 @@ function App() {
 
   return (
     <div>
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          mutate({ title, body, userId: 1 });
+        }}
+      >
+        <label htmlFor="title">Title</label>
+        <input
+          name="title"
+          id="title"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+        />
+        <br />
+        <label htmlFor="body">Body</label>
+        <input
+          name="body"
+          id="body"
+          value={body}
+          onChange={(e) => setBody(e.target.value)}
+        />
+        <button type="submit">Submit</button>
+      </form>
+
       {!isLoading && data ? (
         <div>
           {data.map((user) => (

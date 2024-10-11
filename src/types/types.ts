@@ -4,3 +4,9 @@ export interface UserResponseHttpData {
   username: string;
   email: string;
 }
+
+export interface CreatePostRequestBody {
+  title: string;
+  body: string;
+  userId: number;
+}
